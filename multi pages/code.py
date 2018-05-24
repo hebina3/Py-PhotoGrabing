@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[ ]:
+# In[3]:
 
 
 import requests
@@ -12,7 +12,6 @@ home_page_url = 'http://taylorpictures.net/'
 initial_url = 'http://taylorpictures.net/index.php?cat=3'
 initial_request = requests.get(initial_url)
 initial_page_source = initial_request.text
-
 initial_page_soup = BeautifulSoup(initial_page_source,'lxml')
 cats = initial_page_soup.find('div',{'class':'spec'}).find_all('span',{'class':'catlink'})
 i = 0
@@ -25,33 +24,22 @@ for each_cat in cats:
     page_soup = BeautifulSoup(page_source,'lxml')
     albums = page_soup.find('div',{'class':'spec'}).find_all('a',{'class':'albums'})
     # 找到 album
-    
-    
-    # 进入 album 找 display
+    # 进入 album 找 thumbnails
     for each_album in albums:
         album_url = home_page_url + each_album['href']
         album_source = requests.get(album_url).text
         album_soup = BeautifulSoup(album_source,'lxml')
-        title = str(album_soup.find('h2').text)
-        album_link = album_soup.find('div',{'class':'spec'}).find_all('td',{'class':'thumbnails'})
+        title = album_soup.find('h2').text
         os.mkdir(year_title+'/'+title)
-        
-        # 进入 display 找 img
-        for displays in album_link:
-            if displays.find('a') != None:
-                display_links = home_page_url + displays.find('a')['href']
-                img_source = requests.get(display_links).text
-                img_soup = BeautifulSoup(img_source,'lxml')
-                img_link = img_soup.find('div',{'class':'spec'}).find_all('td',{'style':'{SLIDESHOW_STYLE}'})
-                for img_link_url in img_link:
-                    if img_link_url.find('a') != None:
-                        img_url_normal = home_page_url + img_link_url.find('a').find('img')['src']
-                        file_name = img_url_normal.split('/')[-1].split('_')[-1]
-                        img_url_real = '/'.join(img_url_normal.split('/')[:-1] + [img_url_normal.split('/')[-1].split('_')[-1]])
-                        img_source = requests.get(img_url_real).content
-                        f = open(year_title+'/'+title+'/'+ file_name,'wb')
-                        f.write(img_source)
-                        f.close()
-                        i = i + 1
-                        print('爬取第%d张图' %i)
+        album_link = album_soup.find('div',{'class':'spec'}).find_all('img',{'class':'image thumbnail'})
+        for album_img_link in album_link:
+            img_url_thumbnail = home_page_url + album_img_link['src']
+            file_name = img_url_thumbnail.split('/')[-1].split('_')[-1]
+            img_url_real = '/'.join(img_url_thumbnail.split('/')[:-1] + [img_url_thumbnail.split('/')[-1].split('_')[-1]])
+            img_source = requests.get(img_url_real).content
+            f = open(year_title+'/'+title+'/'+ file_name,'wb')
+            f.write(img_source)
+            f.close()
+            i = i + 1
+            print('爬取第%d张图' %i)
 
